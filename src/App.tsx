@@ -303,6 +303,13 @@ const recordToDraft = (record: BodyRecord): DraftRecord => ({
     record.skeletalMuscleMassKg === undefined ? "" : String(record.skeletalMuscleMassKg),
 });
 
+const hasDateConflict = (
+  records: BodyRecord[],
+  selectedDate: string,
+  editingId: string | null,
+): boolean =>
+  records.some((record) => record.date === selectedDate && record.id !== editingId);
+
 const isFiniteNumber = (value: number | undefined): value is number =>
   value !== undefined && Number.isFinite(value);
 
@@ -1528,12 +1535,13 @@ function App(): JSX.Element {
     }
 
     const nextRecord = draftToRecord(draft, editingId ?? undefined);
+    if (hasDateConflict(records, nextRecord.date, editingId)) {
+      setError("A record for this date already exists. Edit that record first.");
+      return;
+    }
+
     setRecords((current) =>
-      sortRecords(
-        current
-          .filter((record) => record.id !== nextRecord.id && record.date !== nextRecord.date)
-          .concat(nextRecord),
-      ),
+      sortRecords(current.filter((record) => record.id !== nextRecord.id).concat(nextRecord)),
     );
     setDraft(createDraft());
     setEditingId(null);
