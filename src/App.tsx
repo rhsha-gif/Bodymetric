@@ -1525,16 +1525,35 @@ function App(): JSX.Element {
     }
   };
 
+  const updateDraftDate = (date: string): void => {
+    setDraft((current) => ({ ...current, date }));
+  };
+
+  const openNativeDatePicker = (event: React.PointerEvent<HTMLInputElement>): void => {
+    try {
+      event.currentTarget.showPicker?.();
+    } catch {
+      // Browsers may reject showPicker for synthetic clicks; the native input remains usable.
+    }
+  };
+
   const saveRecord = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
 
-    const validationError = validateDraft(draft);
+    const formData = new FormData(event.currentTarget);
+    const submittedDate = formData.get("recordDate");
+    const submittedDraft = {
+      ...draft,
+      date: typeof submittedDate === "string" ? submittedDate : draft.date,
+    };
+
+    const validationError = validateDraft(submittedDraft);
     if (validationError !== null) {
       setError(validationError);
       return;
     }
 
-    const nextRecord = draftToRecord(draft, editingId ?? undefined);
+    const nextRecord = draftToRecord(submittedDraft, editingId ?? undefined);
     if (hasDateConflict(records, nextRecord.date, editingId)) {
       setError("A record for this date already exists. Edit that record first.");
       return;
@@ -1855,11 +1874,15 @@ function App(): JSX.Element {
               <label>
                 날짜
                 <input
+                  className="date-input"
+                  name="recordDate"
                   type="date"
                   value={draft.date}
-                  onChange={(event) =>
-                    setDraft((current) => ({ ...current, date: event.target.value }))
-                  }
+                  disabled={false}
+                  readOnly={false}
+                  onPointerDown={openNativeDatePicker}
+                  onChange={(event) => updateDraftDate(event.target.value)}
+                  onInput={(event) => updateDraftDate(event.currentTarget.value)}
                 />
               </label>
               <label>

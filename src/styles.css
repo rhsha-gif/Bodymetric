@@ -919,9 +919,17 @@ input::placeholder {
   color: #5f6674;
 }
 
-input::-webkit-calendar-picker-indicator {
-  opacity: 0.72;
-  filter: invert(1);
+input[type="date"],
+.date-input {
+  color: var(--text);
+  color-scheme: dark;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+
+.date-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.9;
 }
 
 .form-actions {
